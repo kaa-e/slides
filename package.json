@@ -1,0 +1,16 @@
+{
+    "name": "marp-slide-template",
+    "version": "1.0.0",
+    "description": "Marp slide template repository",
+    "private": true,
+    "scripts": {
+      "install-all": "pnpm install && cd slides/example && pnpm install"
+    },
+    "devDependencies": {
+      "@marp-team/marp-cli": "4.1.2",
+      "@marp-team/marp-core": "4.0.1"
+    },
+    "engines": {
+      "node": ">=16.0.0"
+    }
+  }
