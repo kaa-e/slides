@@ -264,6 +264,18 @@ $amount = new ContractAmount(11000, '0.10');
 ## 2.1 省略せずに意図が伝わる名前を設計する
 
 意図や目的を表現した命名をすることで構造が簡明になる
+```
+int d = 0;
+
+d = p1 + p2;
+
+d = d - ((d1 + d2) / 2);
+
+if (d < 0) {
+  d = 0;
+}
+```
+(d: ダメージ量, p1: プレイヤー本体の攻撃力, p2: プレイヤーの武器の攻撃力...)
 
 ---
 
@@ -279,6 +291,39 @@ $amount = new ContractAmount(11000, '0.10');
 - 様々な用途に使われてしまうためバグを埋め込んでしまう
 
 **解決策**：目的ごとの変数を用意する
+
+---
+```
+int damageAmount = 0;
+
+damageAmount = playerArmPower + playerWeaponPower;  // ①
+
+damageAmount = damageAmount - ((enemyBodyDefence + enemyArmorDefence) / 2); // ②
+
+if (damageAmount < 0) {
+
+  damageAmount = 0;
+
+}
+```
+①プレイヤーの攻撃力の総量
+②敵の防御力の総量を計算している
+
+---
+```
+int totalPlayerAttackPower = playerArmPower + playerWeaponPower;
+
+int totalEnemyDefence = enemyBodyDefence + enemyArmorDefence;
+
+
+int damageAmount = damageAmount - ( totalEnemyDefence / 2);
+
+if (damageAmount < 0) {
+
+  damageAmount = 0;
+
+}
+```
 
 ---
 
@@ -393,6 +438,14 @@ $amount = new ContractAmount(11000, '0.10');
 ## 3.2 成熟したクラスへ成長させる設計術
 
 頑強なクラスを設計するための具体的な手法
+```
+import java.util.Currency; // Java標準の通貨管理クラスを使えるようにする
+
+class Money {
+  int amount;        // 金額値（例：1000, 500）
+  Currency currency; // 通貨単位（例：円, ドル, ユーロ）
+}
+```
 
 ---
 
@@ -403,11 +456,38 @@ $amount = new ContractAmount(11000, '0.10');
 クラスのインスタンスを生成する時点で、インスタンス変数に正常値が確実に設定されている状態にする
 
 - インスタンス変数を全て初期化できるだけの引数を持ったコンストラクタを用意する
-- 不正値の混入を防止するためのバリデーションをコンストラクタ内に定義
+```
+class Money {
+  int amount;
+  Currency currency;
+
+  Money(int amount, Currency currency) {
+    this.amount = amount;
+    this.currency = currency;
+  }
+}
+```
 
 ---
+- 不正値の混入を防止するためのバリデーションをコンストラクタ内に定義
+```
+class Money {
+// 省略
+  Money(int amount, Currency currency) {
+    if (amount < 0) {
+      throw new IllegalArgumentException("金額には0以上を指定してください。");
+    }
+    if (currency == null) {
+      throw new NullPointerException("通貨単位を指定してください。");
+    }
+    this.amount = amount;
+    this.currency = currency;
+  }
+}
+```
 
-## 3.2.1 コンストラクタで確実に正常値を設定する
+
+
 
 ### ガード節：処理の対象外となる条件を先頭に定義する方法
 
@@ -436,6 +516,21 @@ $amount = new ContractAmount(11000, '0.10');
 **final修飾子**：final修飾子を付与されたインスタンス変数は変数宣言時かコンストラクタでのみ代入でき、再代入できない
 
 ---
+```
+class Money {
+  final int amount; // finalがついている
+  final Currency currency; // finalがついている
+
+  Money(int amount, Currency currency) {
+    this.amount = amount;
+    this.currency = currency;
+  }
+}
+```
+_φ(･_･
+final修飾子はphpでいうreadonly?
+
+---
 
 ## 3.2.4 変更したい場合は新しいインスタンスを作成する
 
@@ -450,6 +545,15 @@ $amount = new ContractAmount(11000, '0.10');
 ローカル変数も同様にfinalを付与する
 →途中で値が変化して意味が変わることを防ぐ
 
+```
+void doSomething(int value) {
+  value = 100;
+```
+```
+void doSomething(final int value) {
+  value = 100; //メソッド内で値を変更しようとするとコンパイルエラー
+```
+
 ---
 
 ## 3.2.6 値の渡し間違いを型で防止する
@@ -458,7 +562,10 @@ $amount = new ContractAmount(11000, '0.10');
 
 - 意図が異なる値が複数あっても整数はint、文字列はstringで定義しがち
 - 値の渡し間違いが発生しやすい
-
+```
+final int ticketCount = 3;  // チケット枚数
+money.add(ticketCount);
+```
 ### 解決策
 
 **Money型のように独自の型を用いる**
@@ -471,10 +578,11 @@ $amount = new ContractAmount(11000, '0.10');
 ## 3.2.7 現実の営みにはないメソッドを追加しないこと
 
 現実のドメインに存在しない操作をメソッドとして追加しない
+(ex: 金額の乗算)
 
 ---
 
-## 3.3 悪魔退治の効果を検証する
+## 3.3 
 
 良い構造は次の二つを一つのクラスにまとめること
 
@@ -528,7 +636,6 @@ $amount = new ContractAmount(11000, '0.10');
 ### カプセル化の基礎
 
 1. **クラス単体で正常に動作するよう設計する**
-   - 完全性を保証する
    - インスタンス変数とメソッドを一つのクラスにまとめる
 
 2. **成熟したクラスへ成長させる設計術**
